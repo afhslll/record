@@ -75,10 +75,14 @@ class RecorderStreamDelegate: NSObject, AudioRecordingStreamDelegate {
     audioEngine.prepare()
     try audioEngine.start()
     
+    NotificationCenter.default.addObserver(self, selector: #selector(handleAudioEngineConfigurationChange), name: .AVAudioEngineConfigurationChange, object: audioEngine)
+    
     self.audioEngine = audioEngine
   }
   
   func stop(completionHandler: @escaping (String?) -> ()) {
+    NotificationCenter.default.removeObserver(self)
+    
     audioEngine?.inputNode.removeTap(onBus: bus)
     audioEngine?.stop()
     audioEngine = nil
@@ -222,6 +226,12 @@ class RecorderStreamDelegate: NSObject, AudioRecordingStreamDelegate {
         message: "Failed to setup voice processing",
         details: "Echo cancel error: \(error)"
       )
+    }
+  }
+  
+  @objc private func handleAudioEngineConfigurationChange(notification: NSNotification) {
+    stop { path in
+      self.onStop()
     }
   }
 }

@@ -8,27 +8,31 @@ class RecorderFileDelegate: NSObject, AudioRecordingFileDelegate, AVCaptureFileO
   private var amplitude:Float = -160.0
   private var stopCb: ((String?) -> ())?
   
-  init(onPause: @escaping () -> (), onStop: @escaping () -> ()) {}
+  private var onStop: (() -> ())
+
+  init(onPause: @escaping () -> (), onStop: @escaping () -> ()) {
+    self.onStop = onStop
+  }
   
   func start(config: RecordConfig, path: String) throws {
     try deleteFile(path: path)
     
     let audioSession = AVCaptureSession()
     
-    let dev: AVCaptureInput?
+    let input: AVCaptureDeviceInput?
     do {
-      dev = try getInputDevice(device: config.device)
+      input = try getInputDevice(device: config.device)
     } catch {
       throw RecorderError.error(message: "Failed to start recording", details: "\(error)")
     }
   
-    guard let dev = dev else {
+    guard let input = input else {
       throw RecorderError.error(
         message: "Failed to start recording",
         details: "Input device not found from available list."
       )
     }
-    guard audioSession.canAddInput(dev) else {
+    guard audioSession.canAddInput(input) else {
       throw RecorderError.error(
         message: "Failed to start recording",
         details: "Input device cannot be added to the capture session."
@@ -38,7 +42,7 @@ class RecorderFileDelegate: NSObject, AudioRecordingFileDelegate, AVCaptureFileO
     audioSession.beginConfiguration()
 
     // Add input device
-    audioSession.addInput(dev)
+    audioSession.addInput(input)
     // Add output
     let audioOutput = AVCaptureAudioFileOutput()
     audioSession.addOutput(audioOutput)
@@ -50,6 +54,8 @@ class RecorderFileDelegate: NSObject, AudioRecordingFileDelegate, AVCaptureFileO
     audioSession.commitConfiguration()
     
     audioSession.startRunning()
+
+    NotificationCenter.default.addObserver(self, selector: #selector(self.audioDeviceDisconnected), name: NSNotification.Name.AVCaptureDeviceWasDisconnected, object: input.device)
 
     audioOutput.startRecording(
       to: URL(fileURLWithPath: path),
@@ -63,6 +69,8 @@ class RecorderFileDelegate: NSObject, AudioRecordingFileDelegate, AVCaptureFileO
   }
   
   func stop(completionHandler: @escaping (String?) -> ()) {
+    NotificationCenter.default.removeObserver(self)
+    
     audioOutput?.stopRecording()
     audioOutput = nil
     audioSession?.stopRunning()
@@ -115,6 +123,12 @@ class RecorderFileDelegate: NSObject, AudioRecordingFileDelegate, AVCaptureFileO
 
     stopCb?(path)
     stopCb = nil
+  }
+  
+  @objc private func audioDeviceDisconnected(notification: NSNotification) {
+    stop { path in
+      self.onStop()
+    }
   }
   
   private func deleteFile(path: String) throws {
