@@ -5,10 +5,10 @@ Pod::Spec.new do |s|
     s.description      = <<-DESC
   A Flutter plugin for voice recording.
                          DESC
-    s.homepage         = 'https://github.com/llfbandit/record/tree/master/record_macos'
+    s.homepage         = 'https://github.com/afhslll/record/tree/develop/record_macos'
     s.license          = { :file => '../LICENSE' }
     s.author           = { 'llfbandit' => 'email@example.com' }
-    s.source           = { :http => 'https://github.com/llfbandit/record/tree/master/record_macos' }
+    s.source           = { :http => 'https://github.com/afhslll/record/tree/develop/record_macos' }
 
     s.source_files     = 'record_macos/Sources/record_macos/**/*.swift'
     s.swift_version    = '5.0'

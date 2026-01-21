@@ -1,7 +1,7 @@
 name: record_windows
 description: Windows specific implementation for record package called by record_platform_interface.
 version: 1.0.7
-homepage: https://github.com/llfbandit/record/tree/master/record_windows
+homepage: https://github.com/afhslll/record/tree/develop/record_windows
 
 environment:
   sdk: ^3.5.0
