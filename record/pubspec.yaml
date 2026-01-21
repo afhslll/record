@@ -1,7 +1,7 @@
 name: record
 description: Audio recorder from microphone to file or stream with multiple codecs, bit rate and sampling rate options.
 version: 6.1.2
-homepage: https://github.com/llfbandit/record/tree/master/record
+publish_to: 'none'
 
 environment:
   sdk: ^3.5.0
